@@ -125,7 +125,6 @@ namespace ShareX
         CopyFilePathToClipboard = 1 << 11,
         ShowInExplorer = 1 << 12,
         ScanQRCode = 1 << 13,
-        DoOCR = 1 << 14,
         ShowBeforeUploadWindow = 1 << 15,
         UploadImageToHost = 1 << 16,
         DeleteFile = 1 << 17

@@ -130,9 +130,6 @@ namespace ShareX
                 case HotkeyType.ScrollingCapture:
                     OpenScrollingCapture(safeTaskSettings, true);
                     break;
-                case HotkeyType.TextCapture:
-                    _ = OCRImage(safeTaskSettings);
-                    break;
                 case HotkeyType.AutoCapture:
                     OpenAutoCapture(safeTaskSettings);
                     break;
@@ -207,9 +204,6 @@ namespace ShareX
                     break;
                 case HotkeyType.VideoThumbnailer:
                     OpenVideoThumbnailer(safeTaskSettings);
-                    break;
-                case HotkeyType.TweetMessage:
-                    TweetMessage();
                     break;
                 case HotkeyType.MonitorTest:
                     OpenMonitorTest();
@@ -1117,140 +1111,6 @@ namespace ShareX
             new GoogleImageSearchSharingService().CreateSharer(null, null).ShareURL(url);
         }
 
-        public static async Task OCRImage(TaskSettings taskSettings = null)
-        {
-            if (IsUploadAllowed())
-            {
-                if (taskSettings == null) taskSettings = TaskSettings.GetDefaultTaskSettings();
-
-                using (Image img = RegionCaptureTasks.GetRegionImage(taskSettings.CaptureSettings.SurfaceOptions))
-                {
-                    await OCRImage(img, taskSettings);
-                }
-            }
-        }
-
-        public static async Task OCRImage(Image img, TaskSettings taskSettings = null)
-        {
-            if (IsUploadAllowed() && img != null)
-            {
-                using (Stream stream = SaveImageAsStream(img, EImageFormat.PNG))
-                {
-                    await OCRImage(stream, "ShareX.png", null, taskSettings);
-                }
-            }
-        }
-
-        public static async Task OCRImage(string filePath, TaskSettings taskSettings = null)
-        {
-            if (IsUploadAllowed() && File.Exists(filePath))
-            {
-                using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
-                {
-                    await OCRImage(fs, Path.GetFileName(filePath), filePath, taskSettings);
-                }
-            }
-        }
-
-        private static async Task OCRImage(Stream stream, string fileName, string filePath = null, TaskSettings taskSettings = null)
-        {
-            if (stream != null)
-            {
-                if (taskSettings == null) taskSettings = TaskSettings.GetDefaultTaskSettings();
-
-                OCROptions ocrOptions = taskSettings.CaptureSettings.OCROptions;
-
-                if (!ocrOptions.Permission)
-                {
-                    if (MessageBox.Show(Resources.PleaseNoteThatShareXIsUsingOCRSpaceSOnlineAPIToPerformOpticalCharacterRecognitionDoYouGivePermissionToShareXToUploadImagesToThisService,
-                        Resources.ShareXOpticalCharacterRecognition, MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
-                    {
-                        taskSettings.CaptureSettingsReference.OCROptions.Permission = true;
-                    }
-                    else
-                    {
-                        return;
-                    }
-                }
-
-                if (ocrOptions.Silent)
-                {
-                    await AsyncOCRImage(stream, fileName, filePath, ocrOptions);
-                }
-                else
-                {
-                    using (OCRSpaceForm form = new OCRSpaceForm(stream, fileName, ocrOptions))
-                    {
-                        form.ShowDialog();
-
-                        if (!string.IsNullOrEmpty(form.Result) && !string.IsNullOrEmpty(filePath))
-                        {
-                            string textPath = Path.ChangeExtension(filePath, "txt");
-                            File.WriteAllText(textPath, form.Result, Encoding.UTF8);
-                        }
-                    }
-                }
-            }
-        }
-
-        private static async Task AsyncOCRImage(Stream stream, string fileName, string filePath, OCROptions ocrOptions)
-        {
-            ShowBalloonTip(Resources.OCRForm_AutoProcessing, ToolTipIcon.None, 3000);
-
-            string result = null;
-
-            if (stream != null && stream.Length > 0 && !string.IsNullOrEmpty(fileName))
-            {
-                result = await OCRSpace.DoOCRAsync(ocrOptions.DefaultLanguage, stream, fileName);
-            }
-
-            if (!string.IsNullOrEmpty(result))
-            {
-                ClipboardHelpers.CopyText(result);
-
-                if (!string.IsNullOrEmpty(filePath))
-                {
-                    string textPath = Path.ChangeExtension(filePath, "txt");
-                    File.WriteAllText(textPath, result, Encoding.UTF8);
-                }
-
-                ShowBalloonTip(Resources.OCRForm_AutoComplete, ToolTipIcon.None, 3000);
-            }
-            else
-            {
-                ShowBalloonTip(Resources.OCRForm_AutoCompleteFail, ToolTipIcon.Warning, 3000);
-            }
-        }
-
-        public static void TweetMessage()
-        {
-            if (IsUploadAllowed())
-            {
-                if (Program.UploadersConfig != null && Program.UploadersConfig.TwitterOAuthInfoList != null)
-                {
-                    OAuthInfo twitterOAuth = Program.UploadersConfig.TwitterOAuthInfoList.ReturnIfValidIndex(Program.UploadersConfig.TwitterSelectedAccount);
-
-                    if (twitterOAuth != null && OAuthInfo.CheckOAuth(twitterOAuth))
-                    {
-                        Task.Run(() =>
-                        {
-                            using (TwitterTweetForm twitter = new TwitterTweetForm(twitterOAuth))
-                            {
-                                if (twitter.ShowDialog() == DialogResult.OK && twitter.IsTweetSent)
-                                {
-                                    ShowBalloonTip(Resources.TaskHelpers_TweetMessage_Tweet_successfully_sent_, ToolTipIcon.Info, 3000);
-                                }
-                            }
-                        });
-
-                        return;
-                    }
-                }
-
-                MessageBox.Show(Resources.TaskHelpers_TweetMessage_Unable_to_find_valid_Twitter_account_, "ShareX", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-        }
-
         public static EDataType FindDataType(string filePath, TaskSettings taskSettings)
         {
             if (Helpers.CheckExtension(filePath, taskSettings.AdvancedSettings.ImageExtensions))
@@ -1480,8 +1340,6 @@ namespace ShareX
                         return Resources.folder_stand;
                     case AfterCaptureTasks.ScanQRCode:
                         return Resources.barcode_2d;
-                    case AfterCaptureTasks.DoOCR:
-                        return Resources.edit_drop_cap;
                     case AfterCaptureTasks.ShowBeforeUploadWindow:
                         return Resources.application__arrow;
                     case AfterCaptureTasks.UploadImageToHost:
@@ -1804,17 +1662,5 @@ namespace ShareX
             }
         }
 
-        public static bool IsUploadAllowed()
-        {
-            if (Program.Settings.DisableUpload)
-            {
-                MessageBox.Show(Resources.ThisFeatureWillNotWorkWhenDisableUploadOptionIsEnabled, "ShareX",
-                    MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-                return false;
-            }
-
-            return true;
-        }
     }
 }

@@ -1708,25 +1708,6 @@ namespace ShareX
             TaskHelpers.OpenScrollingCapture();
         }
 
-        private void tsmiTextCapture_Click(object sender, EventArgs e)
-        {
-            Hide();
-            Thread.Sleep(250);
-
-            try
-            {
-                _ = TaskHelpers.OCRImage();
-            }
-            catch (Exception ex)
-            {
-                DebugHelper.WriteException(ex);
-            }
-            finally
-            {
-                this.ForceActivate();
-            }
-        }
-
         private void tsmiAutoCapture_Click(object sender, EventArgs e)
         {
             TaskHelpers.OpenAutoCapture();
@@ -1871,11 +1852,6 @@ namespace ShareX
         private void tsmiVideoThumbnailer_Click(object sender, EventArgs e)
         {
             TaskHelpers.OpenVideoThumbnailer();
-        }
-
-        private void tsmiTweetMessage_Click(object sender, EventArgs e)
-        {
-            TaskHelpers.TweetMessage();
         }
 
         private void tsmiMonitorTest_Click(object sender, EventArgs e)
@@ -2157,18 +2133,6 @@ namespace ShareX
             new CaptureLastRegion().Capture();
         }
 
-        private async void tsmiTrayTextCapture_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                await TaskHelpers.OCRImage();
-            }
-            catch (Exception ex)
-            {
-                DebugHelper.WriteException(ex);
-            }
-        }
-
         private void tsmiTrayToggleHotkeys_Click(object sender, EventArgs e)
         {
             TaskHelpers.ToggleHotkeys();
@@ -2413,11 +2377,6 @@ namespace ShareX
         private void tsmiShowQRCode_Click(object sender, EventArgs e)
         {
             uim.ShowQRCode();
-        }
-
-        private async void tsmiOCRImage_Click(object sender, EventArgs e)
-        {
-            await uim.OCRImage();
         }
 
         private void tsmiCombineImages_Click(object sender, EventArgs e)
