@@ -56,7 +56,7 @@ namespace ShareX
         public AfterUploadTasks AfterUploadJob = AfterUploadTasks.CopyURLToClipboard;
 
         public bool UseDefaultDestinations = true;
-        public ImageDestination ImageDestination = ImageDestination.Imgur;
+        public ImageDestination ImageDestination = ImageDestination.FileUploader;
         public FileDestination ImageFileDestination = FileDestination.Dropbox;
         public TextDestination TextDestination = TextDestination.Pastebin;
         public FileDestination TextFileDestination = FileDestination.Dropbox;

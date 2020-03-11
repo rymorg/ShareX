@@ -299,7 +299,6 @@
     <Compile Include="OAuth\OAuthManager.cs" />
     <Compile Include="OAuth\OAuthInfo.cs" />
     <Compile Include="ImageUploaders\CustomImageUploader.cs" />
-    <Compile Include="ImageUploaders\Imgur.cs" />
     <Compile Include="ImageUploaders\GooglePhotos.cs" />
     <Compile Include="TextUploaders\CustomTextUploader.cs" />
     <Compile Include="TextUploaders\GitHubGist.cs" />
